@@ -2,10 +2,18 @@
 Test xblock/core/plugin.py
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 from mock import patch, Mock
 
 from xblock.test.tools import (
-    assert_is, assert_raises_regexp, assert_equals)
+    assert_is,
+    assert_raises_regexp,
+    assert_equals
+)
 
 from xblock.core import XBlock
 from xblock import plugin
@@ -79,7 +87,7 @@ def _num_plugins_cached():
     """
     Returns the number of plugins that have been cached.
     """
-    return len(plugin.PLUGIN_CACHE.keys())
+    return len(plugin.PLUGIN_CACHE)
 
 
 @XBlock.register_temp_plugin(AmbiguousBlock1, "thumbs")

@@ -4,6 +4,11 @@ This code is in the Runtime layer.
 
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import functools
 import itertools
 import logging
@@ -173,7 +178,7 @@ class Plugin(object):
         def _decorator(func):                           # pylint: disable=C0111
             @functools.wraps(func)
             def _inner(*args, **kwargs):                # pylint: disable=C0111
-                global PLUGIN_CACHE
+                global PLUGIN_CACHE  # pylint: disable=global-statement
 
                 old = list(cls.extra_entry_points)
                 old_cache = PLUGIN_CACHE

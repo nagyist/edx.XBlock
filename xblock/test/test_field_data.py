@@ -2,13 +2,17 @@
 Tests of the utility FieldData's defined by xblock
 """
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 from mock import Mock
 
 from xblock.core import XBlock
 from xblock.exceptions import InvalidScopeError
 from xblock.fields import Scope, String
 from xblock.field_data import SplitFieldData, ReadOnlyFieldData
-
 from xblock.test.tools import assert_false, assert_raises, assert_equals, TestRuntime
 
 

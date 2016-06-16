@@ -1,7 +1,16 @@
 """
 Tests for the UserService
 """
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import collections
+
+import six
+
 from xblock.reference.user_service import XBlockUser, UserService
 from xblock.test.tools import assert_equals, assert_raises, assert_is_instance, assert_false
 
@@ -29,7 +38,7 @@ def test_dummy_user_service_current_user():
     assert_equals(current_user.full_name, "tester")
     # assert that emails is an Iterable but not a string
     assert_is_instance(current_user.emails, collections.Iterable)
-    assert_false(isinstance(current_user.emails, basestring))
+    assert_false(isinstance(current_user.emails, (six.text_type, six.binary_type)))
     # assert that opt_attrs is a Mapping
     assert_is_instance(current_user.opt_attrs, collections.Mapping)
 

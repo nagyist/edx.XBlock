@@ -1,10 +1,18 @@
 """A very basic toy runtime for XBlock tests."""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import logging
 
 try:
     import simplejson as json
 except ImportError:
     import json
+
+import six
 
 from xblock.fields import Scope
 from xblock.runtime import (
@@ -83,7 +91,7 @@ class ToyRuntimeKeyValueStore(KeyValueStore):
         `update_dict`: A dictionary of keys: values.
         This method sets the value of each key to the specified new value.
         """
-        for key, value in update_dict.items():
+        for key, value in six.iteritems(update_dict):
             # We just call `set` directly here, because this is an in-memory representation
             # thus we don't concern ourselves with bulk writes.
             self.set(key, value)
