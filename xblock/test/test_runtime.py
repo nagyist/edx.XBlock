@@ -120,27 +120,6 @@ class TestXBlock(TestXBlockNoFallback):
 TestUsage = namedtuple('TestUsage', 'id, def_id')  # pylint: disable=C0103
 
 
-def check_field(collection, field):
-    """
-    Test method.
-
-    Asserts that the given `field` is present in `collection`.
-    Sets the field to a new value and asserts that the update properly occurs.
-    Deletes the new value, and asserts that the default value is properly restored.
-    """
-    print("Getting %s from %r" % (field.name, collection))
-    assert_equals(field.default, getattr(collection, field.name))
-    new_value = 'new ' + field.name
-    print("Setting %s to %s on %r" % (field.name, new_value, collection))
-    setattr(collection, field.name, new_value)
-    print("Checking %s on %r" % (field.name, collection))
-    assert_equals(new_value, getattr(collection, field.name))
-    print("Deleting %s from %r" % (field.name, collection))
-    delattr(collection, field.name)
-    print("Back to defaults for %s in %r" % (field.name, collection))
-    assert_equals(field.default, getattr(collection, field.name))
-
-
 def test_db_model_keys():
     # Tests that updates to fields are properly recorded in the KeyValueStore,
     # and that the keys have been constructed correctly
