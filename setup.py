@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='XBlock',
-    version='0.4.12',
+    version='0.5.0',
     description='XBlock Core Library',
     packages=[
         'xblock',
@@ -13,13 +13,14 @@ setup(
         'xblock.test.django',
     ],
     install_requires=[
+        'fs',
         'lxml',
         'markupsafe',
         'python-dateutil',
         'pytz',
         'pyyaml',
+        'six',
         'webob',
-        'fs',
     ],
     extras_require={
         'django': ['django-pyfs']
