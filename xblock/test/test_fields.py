@@ -254,9 +254,11 @@ class XMLStringTest(FieldTest):
         u'<xml/>',
         '<bytes/>',
         '<unicode>\xc8\x88</unicode>',
+        None
     )
     def test_json_equals(self, input_text):
-        self.assertJSONOrSetEquals(input_text, input_text)
+        xml_string = self.FIELD_TO_TEST()
+        self.assertEqual(xml_string.to_json(input_text), input_text)
 
     @ddt.data(
         'text',
@@ -272,7 +274,7 @@ class XMLStringTest(FieldTest):
     def test_bad_xml(self, input_text):
         # pylint: disable=no-member
         xml_string = self.FIELD_TO_TEST()
-        self.assertRaises(etree.XMLSyntaxError, xml_string.from_json, input_text)
+        self.assertRaises(etree.XMLSyntaxError, xml_string.to_json, input_text)
 
 
 @ddt.ddt

@@ -895,22 +895,16 @@ class XMLString(String):
     an lxml.etree.XMLSyntaxError will be raised.
     """
 
-    def from_json(self, value):
+    def to_json(self, value):
         """
-        Ensure the input is None or a basestring containing valid XML.
-
-        Raises a TypeError if the input is neither a basestring nor None.
+        Serialize the data, ensuring that it is valid XML (or None).
 
         Raises an lxml.etree.XMLSyntaxError if it is a basestring but not valid
         XML.
         """
-
-        value = super(XMLString, self).from_json(value)
         if value is not None:
             etree.XML(value)
-        return value
-
-    enforce_type = from_json
+        return super(XMLString, self).to_json(value)
 
 
 class DateTime(JSONField):
