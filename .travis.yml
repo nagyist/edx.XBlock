@@ -12,6 +12,5 @@ install:
   - pip install codecov
 script:
   - tox
-  - make doc quality
 after_success:
   - codecov
