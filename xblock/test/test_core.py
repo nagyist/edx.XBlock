@@ -955,7 +955,7 @@ class OpenLocalResourceTest(unittest.TestCase):
         u"public/js/vendor/jNotify.jQuery.min.js",
         u"public/something.foo",         # Unknown file extension is fine
         u"public/a/long/PATH/no-problem=here$123.ext",
-        u"public/ℓιвяαяу.js",
+        u"public/\N{SNOWMAN}.js",
     )
     def test_open_good_local_resource(self, uri):
         loadable = self.LoadableXBlock(None, scope_ids=None)
@@ -969,7 +969,7 @@ class OpenLocalResourceTest(unittest.TestCase):
         u"public/js/vendor/jNotify.jQuery.min.js".encode('utf-8'),
         u"public/something.foo".encode('utf-8'),         # Unknown file extension is fine
         u"public/a/long/PATH/no-problem=here$123.ext".encode('utf-8'),
-        u"public/ℓιвяαяу.js".encode('utf-8'),
+        u"public/N{SNOWMAN}.js".encode('utf-8'),
     )
     def test_open_good_local_resource_binary(self, uri):
         loadable = self.LoadableXBlock(None, scope_ids=None)
@@ -983,7 +983,7 @@ class OpenLocalResourceTest(unittest.TestCase):
         u"../public/no-no.bad",
         u"image.png",
         u".git/secret.js",
-        u"static/ℓιвяαяу.js",
+        u"static/N{SNOWMAN}.js",
     )
     def test_open_bad_local_resource(self, uri):
         loadable = self.LoadableXBlock(None, scope_ids=None)
@@ -999,7 +999,7 @@ class OpenLocalResourceTest(unittest.TestCase):
         u"../public/no-no.bad".encode('utf-8'),
         u"image.png".encode('utf-8'),
         u".git/secret.js".encode('utf-8'),
-        u"static/ℓιвяαяу.js".encode('utf-8'),
+        u"static/N{SNOWMAN}.js".encode('utf-8'),
     )
     def test_open_bad_local_resource_binary(self, uri):
         loadable = self.LoadableXBlock(None, scope_ids=None)
@@ -1014,14 +1014,14 @@ class OpenLocalResourceTest(unittest.TestCase):
         u"public/js/vendor/jNotify.jQuery.min.js",
         u"public/something.foo",         # Unknown file extension is fine
         u"public/a/long/PATH/no-problem=here$123.ext",
-        u"public/ℓιвяαяу.js",
+        u"public/N{SNOWMAN}.js",
         u"public/foo.js",
         u"public/.git/secret.js",
         u"static/secret.js",
         u"../public/no-no.bad",
         u"image.png",
         u".git/secret.js",
-        u"static/ℓιвяαяу.js",
+        u"static/N{SNOWMAN}.js",
     )
     def test_open_local_resource_with_no_resources_dir(self, uri):
         unloadable = self.UnloadableXBlock(None, scope_ids=None)
