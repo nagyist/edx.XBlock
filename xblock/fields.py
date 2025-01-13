@@ -20,14 +20,12 @@ from lxml import etree
 import pytz
 import yaml
 
-from xblock.internal import Nameable
 
 # __all__ controls what classes end up in the docs, and in what order.
 __all__ = [
     'BlockScope', 'UserScope', 'Scope', 'ScopeIds',
     'Field',
     'Boolean', 'Dict', 'Float', 'Integer', 'List', 'Set', 'String', 'XMLString',
-    'XBlockMixin',
 ]
 
 
@@ -158,7 +156,7 @@ class Scope(ScopeBase):
 
     The `content` scope is used to save data for all users, for one particular
     block, across all runs of a course. An example might be an XBlock that
-    wishes to tabulate user "upvotes", or HTML content ti display literally on
+    wishes to tabulate user "upvotes", or HTML content to display literally on
     the page (this example being the reason this scope is named `content`).
 
     The `settings` scope is used to save data for all users, for one particular
@@ -263,7 +261,7 @@ EXPLICITLY_SET = Sentinel("fields.EXPLICITLY_SET")
 NO_GENERATED_DEFAULTS = ('parent', 'children')
 
 
-class Field(Nameable):
+class Field:
     """
     A field class that can be used as a class attribute to define what data the
     class will want to refer to.
@@ -312,6 +310,8 @@ class Field(Nameable):
     # Indicates if a field's None value should be sent to the XML representation.
     none_to_xml = False
 
+    __name__ = None
+
     # We're OK redefining built-in `help`
     def __init__(self, help=None, default=UNSET, scope=Scope.content,  # pylint:disable=redefined-builtin
                  display_name=None, values=None, enforce_type=False,
@@ -338,6 +338,13 @@ class Field(Nameable):
             return copy.deepcopy(self._default)
         else:
             return self._default
+
+    @staticmethod
+    def needs_name(field):
+        """
+        Returns whether the given ) is yet to be named.
+        """
+        return not field.__name__
 
     @property
     def name(self):
@@ -1029,7 +1036,7 @@ class ReferenceList(List):
     It's up to the runtime to know how to dereference the elements of the list. The field type enables the
     runtime to know that it must do the interpretation.
     """
-    # this could define from_json and to_json as list comprehensions calling from/to_json on the list eles,
+    # this could define from_json and to_json as list comprehensions calling from/to_json on the list elements,
     # but since Reference doesn't stipulate a definition for from/to, that seems unnecessary at this time.
 
 
@@ -1040,7 +1047,7 @@ class ReferenceValueDict(Dict):
     It's up to the runtime to know how to dereference the elements of the list. The field type enables the
     runtime to know that it must do the interpretation.
     """
-    # this could define from_json and to_json as list comprehensions calling from/to_json on the list eles,
+    # this could define from_json and to_json as list comprehensions calling from/to_json on the list elements,
     # but since Reference doesn't stipulate a definition for from/to, that seems unnecessary at this time.
 
 
@@ -1064,7 +1071,7 @@ def scope_key(instance, xblock):
     We separate field portions with /. This gives a natural directory
     tree. This is nice in URLs and filenames (although not so nice in
     urls.py)
-    If a field starts with punctuatation, we prefix a _. This prevents hidden files.
+    If a field starts with punctuation, we prefix a _. This prevents hidden files.
 
     Uncommon characters, we encode as their ordinal value, surrounded by -.
     For example, tilde would be -126-.

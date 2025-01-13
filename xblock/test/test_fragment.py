@@ -1,6 +1,5 @@
 """
 Unit tests for the Fragment class.
-
 Note: this class has been deprecated in favor of web_fragments.fragment.Fragment
 """
 from unittest import TestCase

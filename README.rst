@@ -1,22 +1,20 @@
-Part of `edX code`__.
+XBlock
+######
 
-__ http://code.edx.org/
 
-XBlock Courseware Components |build-status| |coverage-status|
-=============================================================
+|pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
+|license-badge| |status-badge|
+
+Purpose
+*******
 
 XBlock is the Open edX component architecture for building courseware.
 
-This repo contains the core code for implementing XBlocks.
-
-
-Background
-----------
-
-Open edX courseware is built out of components that are combined hierarchically.
-These include components like the video player, `LON-CAPA`_ problems, as well
-as compound components like learning sequences. The
-API for these components is called XBlocks.
+This repo contains the core code for implementing XBlocks. Open edX courseware
+is built out of components that are combined hierarchically. These include
+components like the video player, `LON-CAPA`_ problems, as well as compound
+components like learning sequences. The API for these components is called
+XBlocks.
 
 .. _LON-CAPA: http://www.lon-capa.org/
 
@@ -31,68 +29,81 @@ to give us a virtual machine image which ran it.
 .. _Learning Tools Interoperability: http://www.imsglobal.org/toolsinteroperability2.cfm
 .. _SCORM: http://scorm.com/scorm-explained/
 
+Getting Started
+***************
 
-Installation
-------------
+Developing
+==========
 
-This code runs and is tested on Python 3.8.
+One Time Setup
+--------------
 
-1.  Get a local copy of this repo.
+First, clone the repository:
 
-2.  (Optional)  Create and activate a virtualenv to work in.
+.. code-block:: bash
 
-3.  Install the requirements and register the XBlock entry points with (you may
-    need to sudo this if you don't use virtualenv):
+   git clone git@github.com:openedx/XBlock.git
 
-        $ make requirements
+Go to the XBlock directory, set up a virtual environment using ``virtualenvwrapper`` with
+the same name as the repo and activate it:
 
+.. code-block:: bash
 
-Testing
---------
+   cd XBlock
+   mkvirtualenv -p python3.11 XBlock
 
-To run the test suite:
+Every time you develop something in this repo
+---------------------------------------------
 
-    $ tox
+.. code-block:: bash
 
-This will run the XBlock core and runtime unit tests, and print coverage
-reports.
+  # Activate the virtualenv
+  workon XBlock
 
+  # Grab the latest code
+  git checkout master
+  git pull
 
-Style Testing
--------------
+  # Install/update the dev requirements
+  make requirements
 
-We use two tools - ``pylint`` and ``pep8`` - to manage the code quality and style
-of all Python files in this repo. Our goal is to maintain zero reported pylint
-and pep8 violations at all times.
+  # Run the tests and quality checks (to verify the status before you make any changes)
+  make validate
 
-To run these tools on a single file:
+  # Make a new branch for your changes
+  git checkout -b <your_github_username>/<short_description>
 
-    $ pylint path/to/file.py
+  # Using your favorite editor, edit the code to make your change.
+  vim ...
 
-    $ pep8 path/to/file.py
+  # Run your new tests
+  pytest ./path/to/new/tests
 
-To run these tools on the whole project:
+  # Run all the tests and quality checks
+  make validate
 
-    $ pylint .
+  # Commit all your changes
+  git commit ...
+  git push
 
-    $ pep8 .
+  # Open a PR and ask for review.
 
-We do not abide by all pylint and pep8 violations. You can check out which violations
-we ignore by viewing the contents of `pylintrc`_ and `setup.cfg`_. Before making a pull
-request, you should ensure that your branch does not add any new quality violations
-by checking your code with these tools.
+Deploying
+---------
 
-.. _pylintrc: https://github.com/openedx/XBlock/blob/master/pylintrc
-.. _setup.cfg: https://github.com/openedx/XBlock/blob/master/setup.cfg
+To package a new release:
 
-You can run these checks before pushing code to github (and running
-the validation in Github Actions) using Tox::
+#. Describe the release in `CHANGELOG.rst`_
 
-    tox -e quality
+#. Update the ``__version__`` number in `xblock/__init__.py`_
 
+#. Use the github release mechanism to release a new version. This will tag and publish the package.
+
+.. _CHANGELOG.rst: https://github.com/openedx/XBlock/blob/master/CHANGELOG.rst
+.. _xblock/__init__.py: https://github.com/openedx/XBlock/blob/master/xblock/__init__.py
 
 Using the XBlock-SDK
--------------------
+********************
 
 The XBlock-SDK exists in a separate repository. The SDK contains useful tools for
 developing your own XBlocks, such as a template XBlock generator, sample XBlocks
@@ -100,13 +111,13 @@ that demonstrate XBlock functionality.
 
 You can find it in its own repository: https://github.com/openedx/xblock-sdk
 
+Getting Help
+************
 
 Documentation
--------------
+=============
 
-The docs for the XBlock API is on Read The Docs:  https://xblock.readthedocs.org .
-
-
+The docs for the XBlock API is on Read The Docs: https://xblock.readthedocs.org .
 
 Reading the code
 ----------------
@@ -131,62 +142,100 @@ Making an XBlock can be as simple as creating a Python class with a few
 specific methods.
 
 Instructions for constructing a new XBlock along with examples can be found in
-the XBlock SDK: https://github.com/openedx/xblock-sdk
+the `XBlock SDK`_.
 
+.. _XBlock SDK: https://github.com/openedx/xblock-sdk
+
+More Help
+=========
+
+If you're having trouble, we have discussion forums at
+https://discuss.openedx.org where you can connect with others in the
+community.
+
+Our real-time conversations are on Slack. You can request a `Slack
+invitation`_, then join our `community Slack workspace`_.
+
+For anything non-trivial, the best path is to open an issue in this
+repository with as many details about the issue you are facing as you
+can provide.
+
+https://github.com/openedx/XBlock/issues
+
+For more information about these options, see the `Getting Help`_ page.
+
+.. _Slack invitation: https://openedx.org/slack
+.. _community Slack workspace: https://openedx.slack.com/
+.. _Getting Help: https://openedx.org/getting-help
 
 License
--------
+*******
 
 The code in this repository is licensed the Apache 2.0 license unless otherwise
 noted.
 
-Please see ``LICENSE.txt`` for details.
+Please see `LICENSE.txt`_ for details.
 
+.. _LICENSE.txt: https://github.com/openedx/XBlock/blob/master/LICENSE.txt
 
-How to Contribute
------------------
+Contributing
+************
 
-Contributions are very welcome. The easiest way is to fork this repo, and then
-make a pull request from your fork. The first time you make a pull request, you
-may be asked to sign a Contributor Agreement.
+Contributions are very welcome!
 
-Please refer to our `contributor guidelines <https://github.com/openedx/edx-platform/
-blob/master/CONTRIBUTING.rst>`_ in the main edx-platform repo for
-important additional information.
+Please read `How To Contribute <https://openedx.org/r/how-to-contribute>`_ for details.
 
+This project is currently accepting all types of contributions, bug fixes,
+security fixes, maintenance work, or new features.  However, please make sure
+to have a discussion about your new feature idea with the maintainers prior to
+beginning development to maximize the chances of your change being accepted.
+You can start a conversation by creating a new issue on this repo summarizing
+your idea.
+
+The Open edX Code of Conduct
+****************************
+
+All community members are expected to follow the `Open edX Code of Conduct`_.
+
+.. _Open edX Code of Conduct: https://openedx.org/code-of-conduct/
+
+People
+******
+
+The assigned maintainers for this component and other project details may be
+found in `Backstage`_. Backstage pulls this data from the ``catalog-info.yaml``
+file in this repo.
+
+.. _Backstage: https://backstage.openedx.org/catalog/default/component/xblock
 
 Reporting Security Issues
--------------------------
+*************************
 
-Please do not report security issues in public. Please email security@edx.org
+Please do not report security issues in public. Please email security@openedx.org
 
-Packaging
----------
+.. |pypi-badge| image:: https://img.shields.io/pypi/v/XBlock.svg
+    :target: https://pypi.python.org/pypi/XBlock/
+    :alt: PyPI
 
-To package a new release:
+.. |ci-badge| image:: https://github.com/openedx/XBlock/workflows/Python%20CI/badge.svg?branch=master
+    :target: https://github.com/openedx/XBlock/actions
+    :alt: CI
 
-#. Describe the release in CHANGELOG.rst
+.. |codecov-badge| image:: https://codecov.io/github/openedx/XBlock/coverage.svg?branch=master
+    :target: https://codecov.io/github/openedx/XBlock?branch=master
+    :alt: Codecov
 
-#. Update the version number in xblock/VERSION.txt.
+.. |doc-badge| image:: https://readthedocs.org/projects/XBlock/badge/?version=latest
+    :target: https://edx.readthedocs.io/projects/xblock/en/latest/
+    :alt: Documentation
 
-#. Tag the commit to be released::
+.. |pyversions-badge| image:: https://img.shields.io/pypi/pyversions/XBlock.svg
+    :target: https://edx.readthedocs.io/projects/xblock/en/latest/
+    :alt: Supported Python versions
 
-    git tag v1.2.17
+.. |license-badge| image:: https://img.shields.io/github/license/openedx/XBlock.svg
+    :target: https://github.com/openedx/XBlock/blob/master/LICENSE.txt
+    :alt: License
 
-#. Push the tag and wait for Github Action to upload to PyPI::
-
-    git push --tags
-
-
-Getting Help
-------------
-
-If you need help, you can find online resources, including discussions,
-at the `Open edX Getting Help`_ page.
-
-.. _Open edX Getting Help: https://openedx.org/getting-help
-
-.. |build-status| image:: https://github.com/openedx/XBlock/workflows/Python%20CI/badge.svg?branch=master
-   :target: https://github.com/openedx/XBlock/actions?query=workflow%3A%22Python+CI%22
-.. |coverage-status| image:: http://codecov.io/github/edx/XBlock/coverage.svg?branch=master
-   :target: https://codecov.io/github/edx/XBlock?branch=master
+.. |status-badge| image:: https://img.shields.io/badge/Status-Maintained-brightgreen
+    :alt: Repo is maintained.
