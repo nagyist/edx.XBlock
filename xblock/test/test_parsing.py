@@ -56,7 +56,7 @@ class Specialized(XBlock):
     num_children = Integer(default=0, scope=Scope.user_state)
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys, id_generator):
+    def parse_xml(cls, node, runtime, keys):
         """We'll just set num_children to the number of child nodes."""
         block = runtime.construct_xblock_from_class(cls, keys)
         block.num_children = len(node)
@@ -69,12 +69,12 @@ class CustomXml(XBlock):
     has_children = True
 
     @classmethod
-    def parse_xml(cls, node, runtime, keys, id_generator):
+    def parse_xml(cls, node, runtime, keys):
         """Parse the XML node and save it as a string"""
         block = runtime.construct_xblock_from_class(cls, keys)
         for child in node:
             if child.tag is not etree.Comment:
-                block.runtime.add_node_as_child(block, child, id_generator)
+                block.runtime.add_node_as_child(block, child)
         # Now build self.inner_xml from the XML of node's children
         # We can't just call tounicode() on each child because it adds xmlns: attributes
         xml_str = etree.tounicode(node)
@@ -344,7 +344,7 @@ class ExportTest(XmlTest, unittest.TestCase):
     def test_unknown_field_as_attribute_raises_warning(self, parameter_name):
         with mock.patch('logging.warning') as patched_warn:
             block = self.parse_xml_to_block(f"<leaf {parameter_name}='something irrelevant'></leaf>")
-            patched_warn.assert_called_once_with("XBlock %s does not contain field %s", type(block), parameter_name)
+            patched_warn.assert_called_once_with("%s does not contain field %s", type(block), parameter_name)
 
     @XBlock.register_temp_plugin(LeafWithOption)
     @ddt.data(
@@ -361,7 +361,7 @@ class ExportTest(XmlTest, unittest.TestCase):
         """) % (get_namespace_attrs(), parameter_name, parameter_name)
         with mock.patch('logging.warning') as patched_warn:
             block = self.parse_xml_to_block(xml)
-            patched_warn.assert_called_once_with("XBlock %s does not contain field %s", type(block), parameter_name)
+            patched_warn.assert_called_once_with("%s does not contain field %s", type(block), parameter_name)
 
 
 class TestRoundTrip(XmlTest, unittest.TestCase):

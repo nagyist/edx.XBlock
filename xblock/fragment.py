@@ -10,7 +10,6 @@ class Fragment(web_fragments.fragment.Fragment):
     """
     A wrapper around web_fragments.fragment.Fragment that provides
     backwards compatibility for the old location.
-
     Deprecated.
     """
     def __init__(self, *args, **kwargs):

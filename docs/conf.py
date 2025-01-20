@@ -13,10 +13,9 @@
 import datetime
 import os
 import sys
-
-import edx_theme
 from unittest import mock
 
+import django
 
 MOCK_MODULES = [
     'webob',
@@ -33,7 +32,18 @@ for mod_name in MOCK_MODULES:
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('..xblock',))
 from xblock import __version__
+
 # -- General configuration -----------------------------------------------------
+
+# Use a settings module that allows all LMS and Studio code to be imported
+# without errors.  If running sphinx-apidoc, we already set a different
+# settings module to use in the on_init() hook of the parent process
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'docs.docs_settings'
+
+django.setup()
+
+
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -41,7 +51,6 @@ from xblock import __version__
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'edx_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
@@ -57,9 +66,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-author = edx_theme.AUTHOR
+author = 'The Axim Collaborative'
 project = 'XBlock API Guide'
-copyright = f'{datetime.datetime.now().year}, edX Inc.'
+copyright = f'{datetime.datetime.now().year}, The Axim Collaborative'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -119,6 +128,7 @@ nitpick_ignore = [
     ('py:class', 'aside'),
     ('py:class', 'aside_fn'),
     ('py:class', 'webob.Request'),
+    ('py:class', 'webob.Response'),
 ]
 
 suppress_warnings = [
@@ -129,15 +139,46 @@ suppress_warnings = [
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'edx_theme'
+html_theme = 'sphinx_book_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+ "repository_url": "https://github.com/openedx/Xblock",
+ "repository_branch": "master",
+ "path_to_docs": "docs/",
+ "home_page_in_toc": True,
+ "use_repository_button": True,
+ "use_issues_button": True,
+ "use_edit_page_button": True,
+ "navigation_with_keys": False,
+ # Please don't change unless you know what you're doing.
+ "extra_footer": """
+        <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+            <img
+                alt="Creative Commons License"
+                style="border-width:0"
+                src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png"/>
+        </a>
+        <br>
+        These works by
+            <a
+                xmlns:cc="https://creativecommons.org/ns#"
+                href="https://openedx.org"
+                property="cc:attributionName"
+                rel="cc:attributionURL"
+            >The Axim Collaborative</a>
+        are licensed under a
+            <a
+                rel="license"
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+            >Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    """
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [edx_theme.get_html_theme_path()]
+# html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -148,12 +189,12 @@ html_theme_path = [edx_theme.get_html_theme_path()]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "https://logos.openedx.org/open-edx-logo-color.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = os.path.join(html_theme_path[0], 'edx_theme', 'static', 'css', 'favicon.ico')
+html_favicon = "https://logos.openedx.org/open-edx-favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -235,6 +276,23 @@ html_favicon = os.path.join(html_theme_path[0], 'edx_theme', 'static', 'css', 'f
 
 exclude_patterns = ['api/*', 'links.rst']
 
+# Intersphinx Extension Configuration
+
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    "docs-openedx-org": (
+        f"https://docs.openedx.org/en/latest",
+        None,
+    ),
 }
+
+# -- Read the Docs Specific Configuration
+# Define the canonical URL if you are using a custom domain on Read the Docs
+html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
+
+# Tell Jinja2 templates the build is running on Read the Docs
+if os.environ.get("READTHEDOCS", "") == "True":
+    if "html_context" not in globals():
+        html_context = {}
+    html_context["READTHEDOCS"] = True
+

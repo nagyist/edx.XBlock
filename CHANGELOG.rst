@@ -2,7 +2,151 @@
 Change history for XBlock
 =========================
 
-These are notable changes in XBlock.
+Unreleased
+----------
+
+5.1.0 - 2024-08-07
+------------------
+
+* added ability to override an XBlock with the 'xblock.v1.overrides' entry point
+* added ability to override an XBlock Aside with the 'xblock_asides.v1.overrides' entry point
+
+
+5.0.0 - 2024-05-30
+------------------
+
+* dropped python 3.8 support
+* transitioned from deprecated pkg_resources lib to importlib.resources
+
+
+4.1.0 - 2024-05-16
+------------------
+
+* optional streaming response support added to webob_to_django_response
+
+4.0.1 - 2024-04-24
+------------------
+
+* unpin lxml constraint.
+
+4.0.0 - 2024-04-18
+------------------
+
+* xblock.fragment has returned as a pass-though component to web_fragments.fragment
+
+
+3.0.0 - 2024-03-18
+------------------
+
+Various extraneous classes have been removed from the XBlock API, simplifying its implementation
+and making debugging of XBlock instances easier. We believe that most, if not all, XBlock API users
+will be unaffected by this change. Some improvements have also been made to the reference documentation.
+
+Specific changes:
+
+* **Removed:**
+
+  * ``xblock.XBlockMixin`` (still available as ``xblock.core.XBlockMixin``)
+  * ``xblock.core.SharedBlockBase`` (replaced with ``xblock.core.Blocklike``)
+  * ``xblock.internal.Nameable``
+  * ``xblock.internal.NamedAttributesMetaclass``
+  * ``xblock.django.request.HeadersDict``
+  * ``xblock.fields.XBlockMixin`` (still available as ``xblock.core.XBlockMixin``)
+  * ``xblock.mixins.RuntimeServicesMixin``
+  * ``xblock.mixins.ScopedStorageMixin``
+  * ``xblock.mixins.IndexInfoMixin``
+  * ``xblock.mixins.XmlSerializationMixin``
+  * ``xblock.mixins.HandlersMixin``
+  * ``xblock.mixins.ChildrenModelMetaclass``
+  * ``xblock.mixins.HierarchyMixin``
+  * ``xblock.mixins.ViewsMixin``
+
+* **Added:**
+
+  * ``xblock.core.Blocklike``, the new common ancestor of ``XBlock`` and ``XBlockAside``, and ``XBlockMixin``,
+    replacing ``xblock.core.SharedBlockBase``.
+
+  * New attributes on ``xblock.core.XBlockAside``, each behaving the same as their ``XBlock`` counterpart:
+
+    * ``usage_key``
+    * ``context_key``
+    * ``index_dictionary``
+
+  * Various new attributes on ``xblock.core.XBlockMixin``, encompassing the functionality of these former classes:
+
+    * ``xblock.mixins.IndexInfoMixin``
+    * ``xblock.mixins.XmlSerializationMixin``
+    * ``xblock.mixins.HandlersMixin``
+
+* **Docs**
+
+  * Various docstrings have been improved, some of which are published in the docs.
+  * XBlockAside will now be represented in the API docs, right below XBlock on the "XBlock API" page.
+  * XBlockMixin has been removed from the docs.
+    It was only ever documented under the "Fields API" page (which didn't make any sense),
+    and it was barely even documented there. We considered adding it back to the "XBlock API" page,
+    but as noted in the class's new docstring, we do not want to encourage any new use of XBlockMixin.
+
+2.0.0 - 2024-02-26
+------------------
+
+* Removed deprecations
+* xblock.fragment (removed completely)
+* xblock.runtime.Runtime._aside_from_xml (just the id_generator argument)
+* xblock.runtime.Runtime._usage_id_from_node (just the id_generator argument)
+* xblock.runtime.Runtime.add_node_as_child (just the id_generator argument)
+* xblock.runtime.Runtime.parse_xml_string (just the id_generator argument)
+* xblock.runtime.Runtime.parse_xml_file (just the id_generator argument)
+
+1.10.0 - 2024-01-12
+-------------------
+
+* Add two new properties to ``XBlock`` objects: ``.usage_key`` and ``.context_key``.
+  These simply expose the values of ``.scope_ids.usage_id`` and ``.scope_ids.usage_id.context_key``,
+  providing a convenient replacement to the deprecated, edx-platform-specific block properties ``.location``
+  and ``.course_id``, respectively.
+
+1.9.1 - 2023-12-22
+------------------
+
+* Fix: add ``get_javascript_i18n_catalog_url`` missing ``xblock`` parameter to match the Open edX LMS
+  XBlockI18nService.
+
+1.9.0 - 2023-11-20
+------------------
+
+* Support for `OEP-58 JavaScript translations <https://docs.openedx.org/en/latest/developers/concepts/oep58.html>`_:
+
+  * Introduced abstract JavaScript translations support by adding the ``i18n_js_namespace`` property and
+    ``get_i18n_js_namespace`` method to the ``SharedBlockBase``. This allows XBlocks to define a JavaScript namespace
+    so the XBlock i18n runtime service can manage and load JavaScript translations for XBlocks.
+
+  * Added the stub ``get_javascript_i18n_catalog_url`` method to the ``NullI18nService`` class to be implemented
+    by runtime services.
+
+  * See the `edx-platform atlas translations proposal <https://github.com/openedx/edx-platform/blob/master/docs/decisions/0019-oep-58-atlas-translations-design.rst>`_
+
+1.8.1 - 2023-10-07
+------------------
+
+* Python Requirements Update
+* Update setup.py, adds required packages
+
+1.8.0 - 2023-09-25
+------------------
+* Added `xblock-utils <https://github.com/openedx/xblock-utils>`_ repository code into this repository along with docs.
+
+  * Docs moved into the docs/ directory.
+
+  * See https://github.com/openedx/xblock-utils/issues/197 for more details.
+
+1.7.0 - 2023-08-03
+------------------
+
+* Switch from ``edx-sphinx-theme`` to ``sphinx-book-theme`` since the former is
+  deprecated.  See https://github.com/openedx/edx-sphinx-theme/issues/184 for
+  more details.
+* Added support for Django 4.2
 
 1.6.1 - 2022-01-28
 ------------------

@@ -6,7 +6,7 @@ import pytest
 
 from xblock.core import XBlock
 from xblock import plugin
-from xblock.plugin import AmbiguousPluginError, PluginMissingError
+from xblock.plugin import AmbiguousPluginError, AmbiguousPluginOverrideError, PluginMissingError
 
 
 class AmbiguousBlock1(XBlock):
@@ -18,6 +18,10 @@ class AmbiguousBlock2(XBlock):
 
 
 class UnambiguousBlock(XBlock):
+    """A dummy class to find as a plugin."""
+
+
+class OverriddenBlock(XBlock):
     """A dummy class to find as a plugin."""
 
 
@@ -52,6 +56,36 @@ def test_ambiguous_plugins():
         XBlock.load_class("bad_block", select=boom)
 
 
+@XBlock.register_temp_plugin(OverriddenBlock, "overridden_block", group='xblock.v1.overrides')
+@XBlock.register_temp_plugin(UnambiguousBlock, "overridden_block")
+def test_plugin_override():
+    # Trying to load a block that is overridden returns the correct override
+    override = XBlock.load_class("overridden_block")
+    assert override is OverriddenBlock
+
+
+@XBlock.register_temp_plugin(OverriddenBlock, "overridden_block", group='xblock.v1.overrides')
+def test_plugin_override_missing_original():
+    # Trying to override a block that has no original block should raise an error
+    with pytest.raises(PluginMissingError, match="overridden_block"):
+        XBlock.load_class("overridden_block")
+
+
+@XBlock.register_temp_plugin(AmbiguousBlock1, "overridden_block", group='xblock.v1.overrides')
+@XBlock.register_temp_plugin(AmbiguousBlock2, "overridden_block", group='xblock.v1.overrides')
+@XBlock.register_temp_plugin(OverriddenBlock, "overridden_block")
+def test_plugin_override_ambiguous():
+
+    # Trying to load a block that is overridden, but ambigous, errors.
+    expected_msg = (
+        "Ambiguous entry points for overridden_block: "
+        "xblock.test.test_plugin.AmbiguousBlock1, "
+        "xblock.test.test_plugin.AmbiguousBlock2"
+    )
+    with pytest.raises(AmbiguousPluginOverrideError, match=expected_msg):
+        XBlock.load_class("overridden_block")
+
+
 def test_nosuch_plugin():
     # We can provide a default class to return for missing plugins.
     cls = XBlock.load_class("nosuch_block", default=UnambiguousBlock)
@@ -75,13 +109,13 @@ def _num_plugins_cached():
     return len(plugin.PLUGIN_CACHE)
 
 
-@XBlock.register_temp_plugin(AmbiguousBlock1, "thumbs")
+@XBlock.register_temp_plugin(AmbiguousBlock1, "ambiguous_block_1")
 def test_plugin_caching():
     plugin.PLUGIN_CACHE = {}
     assert _num_plugins_cached() == 0
 
-    XBlock.load_class("thumbs")
+    XBlock.load_class("ambiguous_block_1")
     assert _num_plugins_cached() == 1
 
-    XBlock.load_class("thumbs")
+    XBlock.load_class("ambiguous_block_1")
     assert _num_plugins_cached() == 1

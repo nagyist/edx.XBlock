@@ -3,7 +3,6 @@
 """
 Set up for XBlock
 """
-import codecs
 import os
 import os.path
 import re
@@ -32,26 +31,36 @@ setup(
     name='XBlock',
     version=VERSION,
     description='XBlock Core Library',
+    long_description=open('README.rst').read(),
+    long_description_content_type='text/x-rst',
     packages=[
         'xblock',
         'xblock.django',
         'xblock.reference',
+        'xblock.utils',
         'xblock.test',
         'xblock.test.django',
+        'xblock.test.utils',
     ],
     include_package_data=True,
+    package_data={
+        'xblock.utils': ['public/*', 'templates/*', 'templatetags/*'],
+        'xblock.test.utils': ['data/*'],
+    },
     install_requires=[
         'fs',
         'lxml',
+        'mako',
         'markupsafe',
         'python-dateutil',
         'pytz',
         'pyyaml',
+        'simplejson',
         'webob',
         'web-fragments',
     ],
     extras_require={
-        'django': ['django-pyfs >= 1.0.5', 'lazy']
+        'django': ['openedx-django-pyfs >= 1.0.5', 'lazy']
     },
     author='edX',
     author_email='oscm@edx.org',
@@ -60,12 +69,12 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Framework :: Django',
-        'Framework :: Django :: 3.2',
-        'Framework :: Django :: 4.0',
+        'Framework :: Django :: 4.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ]
 )
