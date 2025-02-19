@@ -4,6 +4,7 @@ metaclassing, field access, caching, serialization, and bulk saves.
 """
 # Allow accessing protected members for testing purposes
 # pylint: disable=protected-access
+
 from datetime import datetime
 import json
 import re
@@ -12,9 +13,10 @@ from unittest.mock import patch, MagicMock, Mock
 
 import ddt
 import pytest
+from opaque_keys.edx.locator import LibraryUsageLocatorV2, LibraryLocatorV2
 from webob import Response
 
-from xblock.core import XBlock
+from xblock.core import Blocklike, XBlock
 from xblock.exceptions import (
     XBlockSaveError,
     KeyValueMultiSaveError,
@@ -22,9 +24,8 @@ from xblock.exceptions import (
     DisallowedFileError,
     FieldDataDeprecationWarning,
 )
-from xblock.fields import Dict, Float, Integer, List, Set, Field, Scope, ScopeIds
+from xblock.fields import Dict, Float, Integer, List, Set, Field, Scope, ScopeIds, String
 from xblock.field_data import FieldData, DictFieldData
-from xblock.mixins import ScopedStorageMixin
 from xblock.runtime import Runtime
 
 from xblock.test.tools import (
@@ -196,6 +197,39 @@ def test_set_field_access():
     assert {1} == field_tester._field_data.get(field_tester, 'field_d')
 
 
+def test_shared_block_base_defaults():
+    """
+    Test default values and static methods provided by the SharedBlockBase class.
+    """
+    class DefaultsTester(XBlock):
+        pass
+
+    defaults_tester = DefaultsTester(
+        TestRuntime(services={'field-data': DictFieldData({})}),
+        scope_ids=Mock(spec=ScopeIds)
+    )
+
+    # Testing the default static method return values of SharedBlockBase
+    assert defaults_tester.get_resources_dir() == ''
+    assert defaults_tester.get_public_dir() == 'public'
+    assert defaults_tester.get_i18n_js_namespace() is None
+
+    class CustomizedValuesTester(XBlock):
+        resources_dir = 'custom_resource_dir'
+        public_dir = 'another_public_dir'
+        i18n_js_namespace = 'CustomizedValuesTesterI18N'
+
+    customized_values_tester = CustomizedValuesTester(
+        TestRuntime(services={'field-data': DictFieldData({})}),
+        scope_ids=Mock(spec=ScopeIds),
+    )
+
+    # Testing the customized static method return values of SharedBlockBase
+    assert customized_values_tester.get_resources_dir() == 'custom_resource_dir'
+    assert customized_values_tester.get_public_dir() == 'another_public_dir'
+    assert customized_values_tester.get_i18n_js_namespace() == 'CustomizedValuesTesterI18N'
+
+
 def test_mutable_none_values():
     # Check that fields with values intentionally set to None
     # save properly.
@@ -351,8 +385,8 @@ def test_json_field_access():
             """Convert a datetime object to a string"""
             return value.strftime("%m/%d/%Y")
 
-    class FieldTester(ScopedStorageMixin):
-        """Toy class for ModelMetaclass and field access testing"""
+    class FieldTester(Blocklike):
+        """Toy class for field access testing"""
 
         field_a = Date(scope=Scope.settings)
         field_b = Date(scope=Scope.content, default=datetime(2013, 4, 1))
@@ -400,8 +434,8 @@ def test_defaults_not_shared():
 
 def test_object_identity():
     # Check that values that are modified are what is returned
-    class FieldTester(ScopedStorageMixin):
-        """Toy class for ModelMetaclass and field access testing"""
+    class FieldTester(Blocklike):
+        """Toy class for field access testing"""
         field_a = List(scope=Scope.settings)
 
     def mock_default(block, name):
@@ -440,8 +474,8 @@ def test_object_identity():
 
 def test_caching_is_per_instance():
     # Test that values cached for one instance do not appear on another
-    class FieldTester(ScopedStorageMixin):
-        """Toy class for ModelMetaclass and field access testing"""
+    class FieldTester(Blocklike):
+        """Toy class for field access testing"""
         field_a = List(scope=Scope.settings)
 
     field_data = MagicMock(spec=FieldData)
@@ -742,17 +776,20 @@ def test_handle_shortcut():
 
 
 def test_services_decorators():
-    # A default XBlock has requested no services
-    xblock = XBlock(None, None, None)
-    assert not XBlock._services_requested
-    assert not xblock._services_requested
+
+    class NoServicesBlock(XBlock):
+        """XBlock requesting no services"""
+
+    no_services_block = NoServicesBlock(None, None, None)
+    assert not NoServicesBlock._services_requested
+    assert not no_services_block._services_requested
 
     @XBlock.needs("n")
     @XBlock.wants("w")
     class ServiceUsingBlock(XBlock):
         """XBlock using some services."""
 
-    service_using_block = ServiceUsingBlock(None, scope_ids=None)
+    service_using_block = ServiceUsingBlock(None, scope_ids=Mock())
     assert ServiceUsingBlock._services_requested == {
         'n': 'need', 'w': 'want'
     }
@@ -772,11 +809,12 @@ def test_services_decorators_with_inheritance():
     class SubServiceUsingBlock(ServiceUsingBlock):
         """Does this class properly inherit services from ServiceUsingBlock?"""
 
-    sub_service_using_block = SubServiceUsingBlock(None, scope_ids=None)
+    sub_service_using_block = SubServiceUsingBlock(None, scope_ids=Mock())
     assert sub_service_using_block.service_declaration("n1") == "need"
     assert sub_service_using_block.service_declaration("w1") == "want"
     assert sub_service_using_block.service_declaration("n2") == "need"
     assert sub_service_using_block.service_declaration("w2") == "want"
+    assert sub_service_using_block.service_declaration("field-data") == "need"
     assert sub_service_using_block.service_declaration("xx") is None
 
 
@@ -800,7 +838,7 @@ def test_cached_parent():
     block.parent = "some_parent_id"
     parent = block.get_parent()
     assert parent is not None
-    assert runtime.get_block.called_with("some_parent_id")
+    assert runtime.get_block.called
 
     # Get the parent again.  It will be the same parent, and we didn't call the
     # runtime.
@@ -923,10 +961,9 @@ class OpenLocalResourceTest(unittest.TestCase):
         """Just something to load resources from."""
         resources_dir = None
 
-    def stub_resource_stream(self, module, name):
-        """Act like pkg_resources.resource_stream, for testing."""
-        assert module == "xblock.test.test_core"
-        return "!" + name + "!"
+    def stub_open_resource(self, uri):
+        """Act like xblock.core.Blocklike._open_resource, for testing."""
+        return "!" + uri + "!"
 
     @ddt.data(
         "public/hey.js",
@@ -937,8 +974,8 @@ class OpenLocalResourceTest(unittest.TestCase):
         "public/\N{SNOWMAN}.js",
     )
     def test_open_good_local_resource(self, uri):
-        loadable = self.LoadableXBlock(None, scope_ids=None)
-        with patch('pkg_resources.resource_stream', self.stub_resource_stream):
+        loadable = self.LoadableXBlock(None, scope_ids=Mock())
+        with patch('xblock.core.Blocklike._open_resource', self.stub_open_resource):
             assert loadable.open_local_resource(uri) == "!" + uri + "!"
             assert loadable.open_local_resource(uri.encode('utf-8')) == "!" + uri + "!"
 
@@ -951,8 +988,8 @@ class OpenLocalResourceTest(unittest.TestCase):
         "public/\N{SNOWMAN}.js".encode(),
     )
     def test_open_good_local_resource_binary(self, uri):
-        loadable = self.LoadableXBlock(None, scope_ids=None)
-        with patch('pkg_resources.resource_stream', self.stub_resource_stream):
+        loadable = self.LoadableXBlock(None, scope_ids=Mock())
+        with patch('xblock.core.Blocklike._open_resource', self.stub_open_resource):
             assert loadable.open_local_resource(uri) == "!" + uri.decode('utf-8') + "!"
 
     @ddt.data(
@@ -965,8 +1002,8 @@ class OpenLocalResourceTest(unittest.TestCase):
         "static/\N{SNOWMAN}.js",
     )
     def test_open_bad_local_resource(self, uri):
-        loadable = self.LoadableXBlock(None, scope_ids=None)
-        with patch('pkg_resources.resource_stream', self.stub_resource_stream):
+        loadable = self.LoadableXBlock(None, scope_ids=Mock())
+        with patch('xblock.core.Blocklike._open_resource', self.stub_open_resource):
             msg_pattern = ".*: %s" % re.escape(repr(uri))
             with pytest.raises(DisallowedFileError, match=msg_pattern):
                 loadable.open_local_resource(uri)
@@ -981,8 +1018,8 @@ class OpenLocalResourceTest(unittest.TestCase):
         "static/\N{SNOWMAN}.js".encode(),
     )
     def test_open_bad_local_resource_binary(self, uri):
-        loadable = self.LoadableXBlock(None, scope_ids=None)
-        with patch('pkg_resources.resource_stream', self.stub_resource_stream):
+        loadable = self.LoadableXBlock(None, scope_ids=Mock())
+        with patch('xblock.core.Blocklike._open_resource', self.stub_open_resource):
             msg = ".*: %s" % re.escape(repr(uri.decode('utf-8')))
             with pytest.raises(DisallowedFileError, match=msg):
                 loadable.open_local_resource(uri)
@@ -1003,9 +1040,9 @@ class OpenLocalResourceTest(unittest.TestCase):
         "static/\N{SNOWMAN}.js",
     )
     def test_open_local_resource_with_no_resources_dir(self, uri):
-        unloadable = self.UnloadableXBlock(None, scope_ids=None)
+        unloadable = self.UnloadableXBlock(None, scope_ids=Mock())
 
-        with patch('pkg_resources.resource_stream', self.stub_resource_stream):
+        with patch('xblock.core.Blocklike._open_resource', self.stub_open_resource):
             msg = "not configured to serve local resources"
             with pytest.raises(DisallowedFileError, match=msg):
                 unloadable.open_local_resource(uri)
@@ -1043,6 +1080,12 @@ class TestIndexResults(unittest.TestCase):
         Class to test default Xblock provides a dictionary
         """
 
+    class TestXBlockWithDisplayName(XBlock):
+        """
+        Class to test default Xblock provides a dictionary
+        """
+        display_name = String(default="Test Block with Display Name", scope=Scope.settings)
+
     class TestIndexedXBlock(XBlock):
         """
         Class to test when an Xblock provides a dictionary
@@ -1054,13 +1097,24 @@ class TestIndexResults(unittest.TestCase):
                 "text_block": "Here is some text that was indexed",
             }
 
-    def test_default_index_view(self):
+    def test_default_index_view_with_no_display_name(self):
         test_runtime = TestRuntime(services={'field-data': DictFieldData({})})
         test_xblock = self.TestXBlock(test_runtime, scope_ids=Mock(spec=ScopeIds))
 
         index_info = test_xblock.index_dictionary()
         self.assertFalse(index_info)
         self.assertTrue(isinstance(index_info, dict))
+
+    def test_default_index_view_with_display_name(self):
+        test_runtime = TestRuntime(services={'field-data': DictFieldData({})})
+        test_xblock = self.TestXBlockWithDisplayName(test_runtime, scope_ids=Mock(spec=ScopeIds))
+        test_xblock.display_name = "My Display Name"
+
+        index_info = test_xblock.index_dictionary()
+        assert index_info == {
+            "content": {"display_name": "My Display Name"},
+            "content_type": "Test Block with Display Name",
+        }
 
     def test_override_index_view(self):
         test_runtime = TestRuntime(services={'field-data': DictFieldData({})})
@@ -1070,3 +1124,42 @@ class TestIndexResults(unittest.TestCase):
         self.assertTrue(index_info)
         self.assertTrue(isinstance(index_info, dict))
         self.assertEqual(index_info["test_field"], "ABC123")
+
+
+class TestScopeIdProperties(unittest.TestCase):
+    """
+    Test the .usage_key and .context_key convenience properties.
+    """
+
+    class TestXBlock(XBlock):
+        pass
+
+    library_key = LibraryLocatorV2(org="myOrg", slug="myLib")
+    library_block_key = LibraryUsageLocatorV2(library_key, "myType", "myBlock")
+
+    def test_key_properties(self):
+        scope_ids = ScopeIds(
+            user_id="myUser",
+            block_type="myType",
+            def_id="myDefId",
+            usage_id=self.library_block_key,
+        )
+        block = XBlock(Mock(spec=Runtime), scope_ids=scope_ids)
+        self.assertEqual(block.usage_key, self.library_block_key)
+        self.assertEqual(block.context_key, self.library_key)
+
+    def test_key_properties_when_usage_is_not_an_opaque_key(self):
+        """
+        Tests a legacy scenario that we believe only happens in xblock-sdk at this point.
+
+        Remove this test as part of https://github.com/openedx/XBlock/issues/708.
+        """
+        scope_ids = ScopeIds(
+            user_id="myUser",
+            block_type="myType",
+            def_id="myDefId",
+            usage_id="myWeirdOldUsageId",
+        )
+        block = XBlock(Mock(spec=Runtime), scope_ids=scope_ids)
+        self.assertEqual(block.usage_key, "myWeirdOldUsageId")
+        self.assertIsNone(block.context_key)
